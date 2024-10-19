@@ -1,61 +1,123 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+# LRU Cache Project
 
-## About Laravel
+This project implements an LRU (Least Recently Used) cache using PHP (Laravel) and Redis. The cache stores key-value pairs and supports operations to retrieve and insert new values. It also evicts the least recently used item when the cache exceeds its defined capacity.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Table of Contents
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Available Endpoints](#available-endpoints)
+    - [Operations](#operations)
+- [Testing](#testing)
+- [Technology Stack](#technology-stack)
+- [License](#license)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Requirements:
+- **PHP 8.0+**
+- **Composer**
+- **Docker & Docker Compose** (to run Redis, Laravel, etc.) or **apache / nginx / build in server**
 
-## Learning Laravel
+### Steps:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/waitinghall/Assignment.git
+   cd <repository-folder>
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+2. Run migrations and start the application:
+   ```bash
+   php artisan serve / apache configuration / docker configuration
+   ```
+3. Add hte following line to your hosts file:
+   ```
+   127.0.0.1 oktopost.com
+   ```
+4. Access the application at:
+   ```
+   oktopost.com
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Usage
 
-## Laravel Sponsors
+### Available Endpoints
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+1. **`GET /cache`**: Displays the cache form and the current state of the cache.
+2. **`POST /cache/put`**: Adds or updates a key-value pair in the cache. If the cache exceeds its capacity, it evicts the least recently used item.
+    - **Parameters**:
+        - `key`: A string containing letters (`a-z`, `A-Z`).
+        - `value`: A string value associated with the key.
+3. **`POST /cache/get`**: Retrieves the value for the specified key. If the key is found, it is moved to the top of the cache (most recently used).
+    - **Parameters**:
+        - `key`: A string key to retrieve its value from the cache.
 
-### Premium Partners
+### Operations
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+- **PUT (Insert/Update)**:
+    - Adds or updates a key-value pair in the cache.
+    - If the cache is full, the least recently used (LRU) item is evicted.
+    - After insertion, the key is marked as the most recently used.
 
-## Contributing
+- **GET (Retrieve)**:
+    - Retrieves a value for a given key.
+    - Moves the retrieved key to the top of the cache (most recently used).
+    - If the key is not found, returns `null`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Example Workflow:
 
-## Code of Conduct
+1. **Add a key-value pair**:
+    - `PUT /cache/put` with `key: a` and `value: 1`
+    - The cache now contains: `a => 1`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+2. **Add more values**:
+    - `PUT /cache/put` with `key: b`, `value: 2` and `key: c`, `value: 3`
+    - The cache state becomes: `a => 1, b => 2, c => 3`
 
-## Security Vulnerabilities
+3. **Access an existing key**:
+    - `GET /cache/get` with `key: b`
+    - Key `b` is moved to the top of the cache (most recently used).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+4. **Add a new key (eviction)**:
+    - `PUT /cache/put` with `key: d`, `value: 4` (when cache is full)
+    - The least recently used key (`a`) is evicted, and the new state is: `b => 2, c => 3, d => 4`
+
+## Testing
+
+### Running Unit Tests
+This project includes unit tests to validate the LRU cache functionality. To run the tests:
+
+```bash
+php artisan test
+```
+
+### Test Coverage:
+1. **Basic Functionality Tests**:
+    - Insertion (`put`) and retrieval (`get`) operations.
+    - LRU eviction logic when the cache reaches its capacity.
+
+2. **Update Existing Key**:
+    - Tests whether the cache updates existing keys and moves them to the top.
+
+3. **Edge Cases**:
+    - Handling of non-existing keys and cache overflow.
+
+### Example Test Cases:
+
+- **Test Case 1**:
+    - Insert three key-value pairs, retrieve one, and insert a fourth, ensuring the least recently used key is evicted.
+
+- **Test Case 2**:
+    - Test that calling `get()` on a key updates its usage priority in the cache.
+
+## Technology Stack
+
+- **Backend**: Laravel (PHP)
+- **Cache**: Redis
+- **Frontend**: Bootstrap for basic styling of forms.
+- **Testing**: PHPUnit (for unit tests)
+- **Docker**: For containerized Redis and Laravel environment.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License. See the LICENSE file for details.
