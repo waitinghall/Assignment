@@ -20,7 +20,7 @@ This project implements an LRU (Least Recently Used) cache using PHP (Laravel) a
 ### Repository location:
 Repository location:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/waitinghall/Assignment.git
    cd <repository-folder>
    ```
 
